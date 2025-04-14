@@ -7,6 +7,8 @@ using UnityEngine;
 public class Block : MonoBehaviour
 {
     public enum EColor { Red, Orange, Yellow, Green, Blue, Purple };
+
+    public int index;
     public EColor colorType = EColor.Red;
 
     [SerializeField]

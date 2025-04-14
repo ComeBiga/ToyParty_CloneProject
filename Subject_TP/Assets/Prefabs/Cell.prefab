@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 7884566251601678845}
   - component: {fileID: 4657799269703123248}
   - component: {fileID: 5240342232686301228}
+  - component: {fileID: -2142717256068305688}
   m_Layer: 0
   m_Name: Cell
   m_TagString: Untagged
@@ -100,3 +101,36 @@ MonoBehaviour:
   enable: 1
   _sprtEnable: {fileID: 21300106, guid: da9d6752771285a40a1b383e61336090, type: 3}
   _sprtDisable: {fileID: 21300086, guid: da9d6752771285a40a1b383e61336090, type: 3}
+--- !u!60 &-2142717256068305688
+PolygonCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7277204046835876383}
+  m_Enabled: 0
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: 0, y: 0}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.5}
+    oldSize: {x: 0.768, y: 0.768}
+    newSize: {x: 0.768, y: 0.768}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Points:
+    m_Paths:
+    - - {x: -0.024, y: 0.384}
+      - {x: -0.384, y: 0.20400001}
+      - {x: -0.384, y: -0.20400001}
+      - {x: -0.024, y: -0.384}
+      - {x: 0.024, y: -0.384}
+      - {x: 0.384, y: -0.20400001}
+      - {x: 0.384, y: 0.20400001}
+      - {x: 0.024, y: 0.384}

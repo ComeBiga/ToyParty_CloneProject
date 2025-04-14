@@ -5,11 +5,8 @@ using UnityEngine;
 
 public class HexBoardManager : MonoBehaviour
 {
-    [Serializable]
-    public class HexRow
-    {
-        public List<Cell> cells = new List<Cell>();
-    }
+    public static HexBoardManager Instance => instance;
+    private static HexBoardManager instance = null;
 
     [SerializeField]
     private int _rowSize = 6;
@@ -26,6 +23,7 @@ public class HexBoardManager : MonoBehaviour
         Cell cell = GetCell(row, column);
 
         block.transform.position = cell.transform.position;
+        block.index = GetIndex(row, column);
     }
 
     public Cell GetCell(int row, int column)
@@ -72,6 +70,11 @@ public class HexBoardManager : MonoBehaviour
         return row * _columnSize + column;
     }
 
+    private void Awake()
+    {
+        instance = this;
+    }
+
     private void Start()
     {
         // mBoard = new Cell[_rowSize, _columnSize];
@@ -84,6 +87,7 @@ public class HexBoardManager : MonoBehaviour
             }
 
             Block newBlock = Instantiate(_prefBlock);
+            newBlock.index = i;
             newBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
 
             Vector2Int coordinates = GetCoordinates(i);
