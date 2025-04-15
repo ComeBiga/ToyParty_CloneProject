@@ -8,6 +8,9 @@ public class HexBoardManager : MonoBehaviour
     public static HexBoardManager Instance => instance;
     private static HexBoardManager instance = null;
 
+    public Cell[] Cells => _board;
+    public Block[] Blocks => mBlocks;
+
     [SerializeField]
     private int _rowSize = 6;
     [SerializeField]
@@ -47,6 +50,11 @@ public class HexBoardManager : MonoBehaviour
         block.transform.position = cell.transform.position;
         block.index = GetIndex(row, column);
     }
+    
+    public void SetBlockPosition(HexaVector2Int coordinates, Block block)
+    {
+        SetBlockPosition(coordinates.row, coordinates.column, block);
+    }
 
     public void SwapBlock(Block srcBlock, Block dstBlock)
     {
@@ -59,6 +67,15 @@ public class HexBoardManager : MonoBehaviour
 
     public void DestroyBlock(Block block)
     {
+        for(int i = 0; i < mBlocks.Length; ++i)
+        {
+            if (mBlocks[i] == block)
+            {
+                mBlocks[i] = null;
+                break;
+            }
+        }
+
         Destroy(block.gameObject);
     }
 
@@ -106,14 +123,29 @@ public class HexBoardManager : MonoBehaviour
         return row * _columnSize + column;
     }
 
+    public int GetIndex(HexaVector2Int coordinates)
+    {
+        return GetIndex(coordinates.row, coordinates.column);
+    }
+
     public bool IsInRange(int row, int column)
     {
         return row >= 0 && column >= 0 && row < _rowSize && column < _columnSize;
     }
 
+    public bool IsInRange(HexaVector2Int coordinates)
+    {
+        return IsInRange(coordinates.row, coordinates.column);
+    }
+
     public bool IsEnableCell(int row, int column)
     {
         return _board[GetIndex(row, column)].enable;
+    }
+
+    public bool IsEnableCell(HexaVector2Int coordinates)
+    {
+        return IsEnableCell(coordinates.row, coordinates.column);
     }
 
     private void Awake()
