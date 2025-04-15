@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    [SerializeField]
+    private MatchCheck[] _matchChecks;
+
     private Block mSrcBlock = null;
     private Block mDstBlock = null;
 
@@ -41,11 +44,10 @@ public class Player : MonoBehaviour
 
                 var board = HexBoardManager.Instance;
 
-                Vector2Int srcBlockCoordinates = board.GetCoordinates(mSrcBlock.index);
-                Vector2Int dstBlockCoordinates = board.GetCoordinates(mDstBlock.index);
+                board.SwapBlock(mSrcBlock, mDstBlock);
 
-                board.SetBlockPosition(dstBlockCoordinates.x, dstBlockCoordinates.y, mSrcBlock);
-                board.SetBlockPosition(srcBlockCoordinates.x, srcBlockCoordinates.y, mDstBlock);
+                CheckMatch(mSrcBlock);
+                CheckMatch(mDstBlock);
 
                 mSrcBlock = null;
                 mDstBlock = null;
@@ -67,6 +69,20 @@ public class Player : MonoBehaviour
         else
         {
             return null;
+        }
+    }
+
+    private void CheckMatch(Block srcBlock)
+    {
+        foreach (var matchCheck in _matchChecks)
+        {
+            if (matchCheck.Check(srcBlock, out List<Block> matchableBlocks))
+            {
+                for (int i = matchableBlocks.Count - 1; i >= 0; i--)
+                {
+                    HexBoardManager.Instance.DestroyBlock(matchableBlocks[i]);
+                }
+            }
         }
     }
 }

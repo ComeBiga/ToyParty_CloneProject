@@ -26,6 +26,11 @@ public class Block : MonoBehaviour
 #endif
     }
 
+    public bool IsMatchable(Block srcblock)
+    {
+        return colorType == srcblock.colorType;
+    }
+
 #if UNITY_EDITOR
 
     private void OnValidate()

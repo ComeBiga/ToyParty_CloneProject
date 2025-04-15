@@ -18,6 +18,28 @@ public class HexBoardManager : MonoBehaviour
     [SerializeField]
     private Block _prefBlock;
 
+    private Block[] mBlocks;
+
+    public Block GetBlock(int row, int column)
+    {
+        int targetIndex = GetIndex(row, column);
+
+        for(int i = 0; i < mBlocks.Length; ++i)
+        {
+            if (mBlocks[i] == null)
+            {
+                continue;
+            }
+
+            if (mBlocks[i].index == targetIndex)
+            {
+                return mBlocks[i];
+            }
+        }
+
+        return null;
+    }
+
     public void SetBlockPosition(int row, int column, Block block)
     {
         Cell cell = GetCell(row, column);
@@ -26,12 +48,26 @@ public class HexBoardManager : MonoBehaviour
         block.index = GetIndex(row, column);
     }
 
+    public void SwapBlock(Block srcBlock, Block dstBlock)
+    {
+        HexaVector2Int srcBlockCoordinates = GetCoordinates(srcBlock.index);
+        HexaVector2Int dstBlockCoordinates = GetCoordinates(dstBlock.index);
+
+        SetBlockPosition(dstBlockCoordinates.row, dstBlockCoordinates.column, srcBlock);
+        SetBlockPosition(srcBlockCoordinates.row, srcBlockCoordinates.column, dstBlock);
+    }
+
+    public void DestroyBlock(Block block)
+    {
+        Destroy(block.gameObject);
+    }
+
     public Cell GetCell(int row, int column)
     {
         return _board[GetIndex(row, column)];
     }
 
-    public Vector2Int GetCellCoordinates(Cell cell)
+    public HexaVector2Int GetCellCoordinates(Cell cell)
     {
         for(int i = 0; i < _board.Length; ++i)
         {
@@ -40,11 +76,11 @@ public class HexBoardManager : MonoBehaviour
                 int row = i / _columnSize;
                 int column = i % _columnSize;
 
-                return new Vector2Int(row, column);
+                return new HexaVector2Int(row, column);
             }
         }
 
-        return new Vector2Int(-1, -1);
+        return new HexaVector2Int(-1, -1);
     }
 
     public int GetCellIndex(Cell cell)
@@ -60,14 +96,24 @@ public class HexBoardManager : MonoBehaviour
         return -1;
     }
 
-    public Vector2Int GetCoordinates(int index)
+    public HexaVector2Int GetCoordinates(int index)
     {
-        return new Vector2Int(index / _columnSize, index % _columnSize);
+        return new HexaVector2Int(index / _columnSize, index % _columnSize);
     }
 
     public int GetIndex(int row, int column)
     {
         return row * _columnSize + column;
+    }
+
+    public bool IsInRange(int row, int column)
+    {
+        return row >= 0 && column >= 0 && row < _rowSize && column < _columnSize;
+    }
+
+    public bool IsEnableCell(int row, int column)
+    {
+        return _board[GetIndex(row, column)].enable;
     }
 
     private void Awake()
@@ -77,9 +123,9 @@ public class HexBoardManager : MonoBehaviour
 
     private void Start()
     {
-        // mBoard = new Cell[_rowSize, _columnSize];
+        mBlocks = new Block[_board.Length];
 
-        for(int i = 0; i < _board.Length; ++i)
+        for (int i = 0; i < _board.Length; ++i)
         {
             if (!_board[i].enable)
             {
@@ -89,10 +135,10 @@ public class HexBoardManager : MonoBehaviour
             Block newBlock = Instantiate(_prefBlock);
             newBlock.index = i;
             newBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
+            mBlocks[i] = newBlock;
 
-            Vector2Int coordinates = GetCoordinates(i);
-
-            SetBlockPosition(coordinates.x, coordinates.y, newBlock);
+            HexaVector2Int coordinates = GetCoordinates(i);
+            SetBlockPosition(coordinates.row, coordinates.column, newBlock);
         }
     }
 }
