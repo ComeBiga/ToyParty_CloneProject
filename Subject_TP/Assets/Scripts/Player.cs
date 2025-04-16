@@ -54,8 +54,11 @@ public class Player : MonoBehaviour
                 board.SwapBlock(mSrcBlock, mDstBlock);
                 yield return eAnimateBlockSwap(mSrcBlock, mDstBlock);
 
-                bool bSrcPopping = checkMatch(mSrcBlock);
-                bool bDstPopping = checkMatch(mDstBlock);
+                var matchableBlocksSet = new HashSet<Block>(board.Blocks.Count);
+                bool bSrcPopping = checkMatch(mSrcBlock, matchableBlocksSet);
+                bool bDstPopping = checkMatch(mDstBlock, matchableBlocksSet);
+
+                board.DestroyBlocks(matchableBlocksSet);
 
                 mbPopping = bSrcPopping || bDstPopping;
 
@@ -71,7 +74,15 @@ public class Player : MonoBehaviour
 
                             if (!bDropped && !bSpawned)
                             {
-                                break;
+                                matchableBlocksSet.Clear();
+                                bool bMatched = checkMatchAll(matchableBlocksSet);
+
+                                board.DestroyBlocks(matchableBlocksSet);
+
+                                if (!bMatched)
+                                {
+                                    break;
+                                }
                             }
 
                             if (++breaker > 100)
@@ -143,7 +154,7 @@ public class Player : MonoBehaviour
         dstBlock.transform.position = srcBlockPosition;
     }
 
-    private bool checkMatch(Block srcBlock)
+    private bool checkMatch(Block srcBlock, HashSet<Block> matchableBlocksSet)
     {
         bool bMatched = false;
 
@@ -151,11 +162,28 @@ public class Player : MonoBehaviour
         {
             if (matchCheck.Check(srcBlock, out List<Block> matchableBlocks))
             {
-                for (int i = matchableBlocks.Count - 1; i >= 0; i--)
+                foreach(Block matchableBlock in matchableBlocks)
                 {
-                    HexBoardManager.Instance.DestroyBlock(matchableBlocks[i]);
+                    matchableBlocksSet.Add(matchableBlock);
                 }
 
+                bMatched = true;
+            }
+        }
+
+        return bMatched;
+    }
+
+    private bool checkMatchAll(HashSet<Block> matchableBlocksSet)
+    {
+        var board = HexBoardManager.Instance;
+        List<Block> blocks = board.Blocks;
+        bool bMatched = false;
+
+        foreach (Block block in blocks)
+        {
+            if(checkMatch(block, matchableBlocksSet))
+            {
                 bMatched = true;
             }
         }
@@ -168,7 +196,6 @@ public class Player : MonoBehaviour
         var board = HexBoardManager.Instance;
 
         List<Block> blocks = board.Blocks;
-        var dropBlocks = new List<Block>(board.Blocks.Count);
         bool bDropped = false;
         var dirs = new HexaUtility.EDirection[] { 
                                                     HexaUtility.EDirection.Down, 
@@ -241,7 +268,6 @@ public class Player : MonoBehaviour
                     }
 
                     board.SetBlockIndex(downCoordinates, block);
-                    // dropBlocks.Add(block);
                     StartCoroutine(eDropBlock(block, downCoordinates));
 
                     bDropped = true;

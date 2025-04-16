@@ -90,6 +90,14 @@ public class HexBoardManager : MonoBehaviour
         Destroy(block.gameObject);
     }
 
+    public void DestroyBlocks(HashSet<Block> blocks)
+    {
+        foreach(Block block in blocks)
+        {
+            DestroyBlock(block);
+        }
+    }
+
     public Cell GetCell(int row, int column)
     {
         return _board[GetIndex(row, column)];
