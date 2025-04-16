@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -65,7 +66,10 @@ public class Player : MonoBehaviour
                     {
                         // if(Input.GetKeyDown(KeyCode.Space))
                         {
-                            if (!dropBlocks())
+                            bool bSpawned = spawnBlock();
+                            bool bDropped = dropBlocks();
+
+                            if (!bDropped && !bSpawned)
                             {
                                 break;
                             }
@@ -163,8 +167,8 @@ public class Player : MonoBehaviour
     {
         var board = HexBoardManager.Instance;
 
-        Block[] blocks = board.Blocks;
-        var dropBlocks = new List<Block>(board.Blocks.Length);
+        List<Block> blocks = board.Blocks;
+        var dropBlocks = new List<Block>(board.Blocks.Count);
         bool bDropped = false;
         var dirs = new HexaUtility.EDirection[] { 
                                                     HexaUtility.EDirection.Down, 
@@ -172,7 +176,7 @@ public class Player : MonoBehaviour
                                                     HexaUtility.EDirection.RightDown
                                                 };
 
-        for (int i = 0; i < blocks.Length; ++i)
+        for (int i = 0; i < blocks.Count; ++i)
         {
             Block block = blocks[i];
 
@@ -270,5 +274,35 @@ public class Player : MonoBehaviour
         }
 
         board.SetBlockWorldPosition(toCoordinates.row, toCoordinates.column, srcBlock);
+    }
+
+    private bool spawnBlock()
+    {
+        var board = HexBoardManager.Instance;
+
+        Cell cell = board.GetSpawnCell();
+        HexaVector2Int spawnCoordinates = board.GetCellCoordinates(cell);
+        HexaVector2Int delta = HexaUtility.GetDelta(spawnCoordinates.column, HexaUtility.EDirection.Down);
+        HexaVector2Int downCoordinates = new HexaVector2Int(spawnCoordinates.row + delta.row, spawnCoordinates.column + delta.column);
+
+        if(!board.IsInRange(downCoordinates))
+        {
+            return false;
+        }
+
+        if(!board.IsEnableCell(downCoordinates))
+        {
+            return false;
+        }
+
+        Block downBlock = board.GetBlock(downCoordinates.row, downCoordinates.column);
+
+        if(downBlock == null)
+        {
+            board.SpawnBlock();
+            return true;
+        }
+
+        return false;
     }
 }

@@ -6,6 +6,7 @@ using UnityEngine;
 public class Cell : MonoBehaviour
 {
     public bool enable = true;
+    public bool spawn = false;
 
     [SerializeField]
     private Sprite _sprtEnable;
