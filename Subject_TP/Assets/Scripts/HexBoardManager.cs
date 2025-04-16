@@ -43,17 +43,24 @@ public class HexBoardManager : MonoBehaviour
         return null;
     }
 
-    public void SetBlockPosition(int row, int column, Block block)
+    public void SetBlockIndex(int row, int column, Block block)
+    {
+        // Cell cell = GetCell(row, column);
+
+        // block.transform.position = cell.transform.position;
+        block.index = GetIndex(row, column);
+    }
+    
+    public void SetBlockIndex(HexaVector2Int coordinates, Block block)
+    {
+        SetBlockIndex(coordinates.row, coordinates.column, block);
+    }
+
+    public void SetBlockWorldPosition(int row, int column, Block block)
     {
         Cell cell = GetCell(row, column);
 
         block.transform.position = cell.transform.position;
-        block.index = GetIndex(row, column);
-    }
-    
-    public void SetBlockPosition(HexaVector2Int coordinates, Block block)
-    {
-        SetBlockPosition(coordinates.row, coordinates.column, block);
     }
 
     public void SwapBlock(Block srcBlock, Block dstBlock)
@@ -61,8 +68,11 @@ public class HexBoardManager : MonoBehaviour
         HexaVector2Int srcBlockCoordinates = GetCoordinates(srcBlock.index);
         HexaVector2Int dstBlockCoordinates = GetCoordinates(dstBlock.index);
 
-        SetBlockPosition(dstBlockCoordinates.row, dstBlockCoordinates.column, srcBlock);
-        SetBlockPosition(srcBlockCoordinates.row, srcBlockCoordinates.column, dstBlock);
+        SetBlockIndex(dstBlockCoordinates.row, dstBlockCoordinates.column, srcBlock);
+        SetBlockIndex(srcBlockCoordinates.row, srcBlockCoordinates.column, dstBlock);
+
+        //SetBlockWorldPosition(dstBlockCoordinates.row, dstBlockCoordinates.column, srcBlock);
+        //SetBlockWorldPosition(srcBlockCoordinates.row, srcBlockCoordinates.column, dstBlock);
     }
 
     public void DestroyBlock(Block block)
@@ -148,6 +158,18 @@ public class HexBoardManager : MonoBehaviour
         return IsEnableCell(coordinates.row, coordinates.column);
     }
 
+    public Vector3 GetWorldPosition(int row, int column)
+    {
+        Cell cell = GetCell(row, column);
+
+        return cell.transform.position;
+    }
+
+    public Vector3 GetWorldPosition(HexaVector2Int coordinates)
+    {
+        return GetWorldPosition(coordinates.row, coordinates.column);
+    }
+
     private void Awake()
     {
         instance = this;
@@ -170,7 +192,8 @@ public class HexBoardManager : MonoBehaviour
             mBlocks[i] = newBlock;
 
             HexaVector2Int coordinates = GetCoordinates(i);
-            SetBlockPosition(coordinates.row, coordinates.column, newBlock);
+            SetBlockIndex(coordinates.row, coordinates.column, newBlock);
+            SetBlockWorldPosition(coordinates.row, coordinates.column, newBlock);
         }
     }
 }

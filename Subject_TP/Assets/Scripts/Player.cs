@@ -6,6 +6,10 @@ public class Player : MonoBehaviour
 {
     [SerializeField]
     private MatchCheck[] _matchChecks;
+    [SerializeField]
+    private float _swapDuration = .2f;
+    [SerializeField]
+    private float _dropDuration = .5f;
 
     private Block mSrcBlock = null;
     private Block mDstBlock = null;
@@ -47,25 +51,41 @@ public class Player : MonoBehaviour
                 var board = HexBoardManager.Instance;
 
                 board.SwapBlock(mSrcBlock, mDstBlock);
+                yield return eAnimateBlockSwap(mSrcBlock, mDstBlock);
 
-                bool bSrcPopping = CheckMatch(mSrcBlock);
-                bool bDstPopping = CheckMatch(mDstBlock);
+                bool bSrcPopping = checkMatch(mSrcBlock);
+                bool bDstPopping = checkMatch(mDstBlock);
 
                 mbPopping = bSrcPopping || bDstPopping;
 
                 if(mbPopping)
                 {
                     int breaker = 0;
-                    while (DropBlocks())
+                    while (true)
                     {
-                        if (++breaker > 100)
+                        // if(Input.GetKeyDown(KeyCode.Space))
                         {
-                            Debug.LogError("Drop Loop Break");
-                            break;
+                            if (!dropBlocks())
+                            {
+                                break;
+                            }
+
+                            if (++breaker > 100)
+                            {
+                                Debug.LogError("Drop Loop Break");
+                                break;
+                            }
                         }
+
+                        yield return new WaitForSeconds(_dropDuration + .01f);
                     }
 
                     mbPopping = false;
+                }
+                else
+                {
+                    board.SwapBlock(mSrcBlock, mDstBlock);
+                    yield return eAnimateBlockSwap(mSrcBlock, mDstBlock);
                 }
 
                 mSrcBlock = null;
@@ -91,7 +111,35 @@ public class Player : MonoBehaviour
         }
     }
 
-    private bool CheckMatch(Block srcBlock)
+    private IEnumerator eAnimateBlockSwap(Block srcBlock, Block dstBlock)
+    {
+        var board = HexBoardManager.Instance;
+        Vector3 srcBlockPosition = srcBlock.transform.position;
+        Vector3 dstBlockPosition = dstBlock.transform.position;
+
+        Vector3 dirToDst = (dstBlockPosition - srcBlockPosition).normalized;
+        Vector3 dirToScr = (srcBlockPosition - dstBlockPosition).normalized;
+
+        float duration = _swapDuration;
+        float timer = 0f;
+
+        while(timer < duration)
+        {
+            Vector3 srcBlockCurrentPosition = Vector3.Lerp(srcBlockPosition, dstBlockPosition, timer / duration);
+            srcBlock.transform.position = srcBlockCurrentPosition;
+
+            Vector3 dstBlockCurrentPosition = Vector3.Lerp(dstBlockPosition, srcBlockPosition, timer / duration);
+            dstBlock.transform.position = dstBlockCurrentPosition;
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        srcBlock.transform.position = dstBlockPosition;
+        dstBlock.transform.position = srcBlockPosition;
+    }
+
+    private bool checkMatch(Block srcBlock)
     {
         bool bMatched = false;
 
@@ -111,11 +159,12 @@ public class Player : MonoBehaviour
         return bMatched;
     }
 
-    private bool DropBlocks()
+    private bool dropBlocks()
     {
         var board = HexBoardManager.Instance;
 
         Block[] blocks = board.Blocks;
+        var dropBlocks = new List<Block>(board.Blocks.Length);
         bool bDropped = false;
         var dirs = new HexaUtility.EDirection[] { 
                                                     HexaUtility.EDirection.Down, 
@@ -132,9 +181,10 @@ public class Player : MonoBehaviour
                 continue;
             }
 
+            HexaVector2Int blockCoordinates = board.GetCoordinates(block.index);
+
             foreach(HexaUtility.EDirection dir in dirs)
             {
-                HexaVector2Int blockCoordinates = board.GetCoordinates(block.index);
                 HexaVector2Int downDelta = HexaUtility.GetDelta(blockCoordinates.column, dir);
                 HexaVector2Int downCoordinates = new HexaVector2Int(blockCoordinates.row + downDelta.row, blockCoordinates.column + downDelta.column);
 
@@ -154,32 +204,71 @@ public class Player : MonoBehaviour
                 {
                     if(dir == HexaUtility.EDirection.LeftDown || dir == HexaUtility.EDirection.RightDown)
                     {
-                        HexaVector2Int upCoordinates = new HexaVector2Int(downCoordinates.row + 1, downCoordinates.column);
+                        HexaVector2Int upCoordinates = new HexaVector2Int(downCoordinates.row, downCoordinates.column);
+                        bool bFallingBlock = false;
 
-                        //if (!board.IsInRange(upCoordinates))
-                        //{
-                        //    continue;
-                        //}
+                        while(true)
+                        {
+                            upCoordinates = new HexaVector2Int(upCoordinates.row + 1, upCoordinates.column);
 
-                        //if (!board.IsEnableCell(upCoordinates))
-                        //{
-                        //    continue;
-                        //}
+                            if (!board.IsInRange(upCoordinates))
+                            {
+                                break;
+                            }
 
-                        Block upBlock = board.GetBlock(downCoordinates.row, downCoordinates.column);
+                            if (!board.IsEnableCell(upCoordinates))
+                            {
+                                break;
+                            }
 
-                        if(upBlock != null)
+                            Block upBlock = board.GetBlock(upCoordinates.row, upCoordinates.column);
+
+                            if(upBlock != null)
+                            {
+                                bFallingBlock = true;
+                                break;
+                            }
+                        }
+
+                        if(bFallingBlock)
                         {
                             continue;
                         }
                     }
 
-                    board.SetBlockPosition(downCoordinates, block);
+                    board.SetBlockIndex(downCoordinates, block);
+                    // dropBlocks.Add(block);
+                    StartCoroutine(eDropBlock(block, downCoordinates));
+
                     bDropped = true;
+
+                    break;
                 }
             }
         }
 
         return bDropped;
+    }
+
+    private IEnumerator eDropBlock(Block srcBlock, HexaVector2Int toCoordinates)
+    {
+        var board = HexBoardManager.Instance;
+        Vector3 fromPosition = srcBlock.transform.position;
+        Vector3 toPosition = board.GetWorldPosition(toCoordinates);
+        Vector3 dir = (toPosition - fromPosition).normalized;
+
+        float duration = _dropDuration;
+        float timer = 0f;
+
+        while(timer < duration)
+        {
+            Vector3 currentPosition = Vector3.Lerp(fromPosition, toPosition, timer / duration);
+            srcBlock.transform.position = currentPosition;
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        board.SetBlockWorldPosition(toCoordinates.row, toCoordinates.column, srcBlock);
     }
 }
