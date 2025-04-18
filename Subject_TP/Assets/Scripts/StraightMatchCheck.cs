@@ -6,18 +6,22 @@ public class StraightMatchCheck : MatchCheck
 {
     [SerializeField]
     private int _minMatchCount = 3;
+    [SerializeField]
+    private int _minItemMatchCount = 4;
+    [SerializeField]
+    private Block _prefItemBlock;
 
-    public override bool Check(Block srcblock, out List<Block> matchableBlocks)
+    public override bool Check(Block srcblock, out List<Block> matchableBlocks, List<ItemInfo> itemInfos)
     {
         var board = HexBoardManager.Instance;
         matchableBlocks = new List<Block>(10);
 
         // ÁÂ»ó -> ¿ìÇÏ
-        List<Block> LuRdBlocks = getMatchableBlocks(srcblock, HexaUtility.EDirection.LeftUp, HexaUtility.EDirection.RightDown);
+        List<Block> LuRdBlocks = GetMatchableBlocks(srcblock, HexaUtility.EDirection.LeftUp, HexaUtility.EDirection.RightDown);
         // ÁÂÇÏ -> ¿ì»ó
-        List<Block> LdRuBlocks = getMatchableBlocks(srcblock, HexaUtility.EDirection.LeftDown, HexaUtility.EDirection.RightUp);
+        List<Block> LdRuBlocks = GetMatchableBlocks(srcblock, HexaUtility.EDirection.LeftDown, HexaUtility.EDirection.RightUp);
         // »ó -> ÇÏ
-        List<Block> UDBlocks = getMatchableBlocks(srcblock, HexaUtility.EDirection.Up, HexaUtility.EDirection.Down);
+        List<Block> UDBlocks = GetMatchableBlocks(srcblock, HexaUtility.EDirection.Up, HexaUtility.EDirection.Down);
 
         if(LuRdBlocks.Count >= _minMatchCount)
         {
@@ -29,9 +33,18 @@ public class StraightMatchCheck : MatchCheck
             matchableBlocks.AddRange(LdRuBlocks);
         }
 
-        if(UDBlocks.Count >= _minMatchCount) 
+        if(UDBlocks.Count >= _minMatchCount)
         {
             matchableBlocks.AddRange(UDBlocks);
+        }
+
+        if(LuRdBlocks.Count >= _minItemMatchCount || LdRuBlocks.Count >= _minItemMatchCount || UDBlocks.Count >= _minItemMatchCount)
+        {
+            var itemInfo = new ItemInfo();
+            itemInfo.srcBlock = srcblock;
+            itemInfo.prefItemBlock = _prefItemBlock;
+            itemInfo.matchableBlocks = matchableBlocks;
+            itemInfos.Add(itemInfo);
         }
 
         return LuRdBlocks.Count >= _minMatchCount 
@@ -39,7 +52,7 @@ public class StraightMatchCheck : MatchCheck
                 || UDBlocks.Count >= _minMatchCount;
     }
 
-    private List<Block> getMatchableBlocks(Block srcBlock, HexaUtility.EDirection dir1, HexaUtility.EDirection dir2)
+    public static List<Block> GetMatchableBlocks(Block srcBlock, HexaUtility.EDirection dir1, HexaUtility.EDirection dir2)
     {
         var board = HexBoardManager.Instance;
         HexaVector2Int currentCoordinates = board.GetCoordinates(srcBlock.index);

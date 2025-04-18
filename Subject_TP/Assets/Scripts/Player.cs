@@ -4,6 +4,33 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public class PopInfo
+    {
+        public enum EState { Swap, Drop }
+
+        public HashSet<Block> matchableBlocksSet = new HashSet<Block>();
+        public List<MatchCheck.ItemInfo> createdItemInfos = new List<MatchCheck.ItemInfo>();
+        public HashSet<Block> destoryBlocksSet = new HashSet<Block>();
+        public EState state;
+        public Block srcBlock;
+        public Block dstBlock;
+
+        public void Reset()
+        {
+            matchableBlocksSet.Clear();
+            createdItemInfos.Clear();
+            destoryBlocksSet.Clear();
+            srcBlock = null;
+            dstBlock = null;
+        }
+
+        public void DestroyBlocks()
+        {
+            var board = HexBoardManager.Instance;
+            board.DestroyBlocks(destoryBlocksSet);
+        }
+    }
+
     [SerializeField]
     private MatchCheck[] _matchChecks;
     [SerializeField]
@@ -53,18 +80,35 @@ public class Player : MonoBehaviour
                 board.SwapBlock(mSrcBlock, mDstBlock);
                 yield return eAnimateBlockSwap(mSrcBlock, mDstBlock);
 
-                var matchableBlocksSet = new HashSet<Block>(board.Blocks.Count);
-                bool bSrcPopping = checkMatch(mSrcBlock, matchableBlocksSet);
-                bool bDstPopping = checkMatch(mDstBlock, matchableBlocksSet);
+                var popInfo = new PopInfo();
+                popInfo.state = PopInfo.EState.Swap;
+                // var matchableBlocksSet = new HashSet<Block>(board.Blocks.Count);
+                // var itemInfos = new List<MatchCheck.ItemInfo>();
+                //bool bSrcPopping = checkMatch(mSrcBlock, matchableBlocksSet, itemInfos);
+                //bool bDstPopping = checkMatch(mDstBlock, matchableBlocksSet, itemInfos);
+                bool bSrcPopping = checkMatch(mSrcBlock, popInfo);
+                bool bDstPopping = checkMatch(mDstBlock, popInfo);
 
-                checkBreakableBlock(matchableBlocksSet);
+                useItemBlock(popInfo);
 
-                board.DestroyBlocks(matchableBlocksSet);
+                // createItemBlock(itemInfos);
+                createItemBlock(popInfo);
+                // itemInfos.Clear();
+
+                //checkBreakableBlock(matchableBlocksSet);
+                checkBreakableBlock(popInfo);
+
+                //board.DestroyBlocks(matchableBlocksSet);
+                board.DestroyBlocks(popInfo.destoryBlocksSet);
+
+                popInfo.Reset();
 
                 mbPopping = bSrcPopping || bDstPopping;
 
                 if(mbPopping)
                 {
+                    popInfo.state = PopInfo.EState.Drop;
+
                     int breaker = 0;
                     while (true)
                     {
@@ -75,12 +119,23 @@ public class Player : MonoBehaviour
 
                             if (!bDropped && !bSpawned)
                             {
-                                matchableBlocksSet.Clear();
-                                bool bMatched = checkMatchAll(matchableBlocksSet);
+                                // matchableBlocksSet.Clear();
+                                // bool bMatched = checkMatchAll(matchableBlocksSet, itemInfos);
+                                bool bMatched = checkMatchAll(popInfo);
 
-                                checkBreakableBlock(matchableBlocksSet);
+                                useItemBlock(popInfo);
 
-                                board.DestroyBlocks(matchableBlocksSet);
+                                //createItemBlock(itemInfos);
+                                createItemBlock(popInfo);
+                                //itemInfos.Clear();
+
+                                //checkBreakableBlock(matchableBlocksSet);
+                                checkBreakableBlock(popInfo);
+
+                                //board.DestroyBlocks(matchableBlocksSet);
+                                board.DestroyBlocks(popInfo.destoryBlocksSet);
+
+                                popInfo.Reset();
 
                                 if (!bMatched)
                                 {
@@ -157,7 +212,8 @@ public class Player : MonoBehaviour
         dstBlock.transform.position = srcBlockPosition;
     }
 
-    private bool checkMatch(Block srcBlock, HashSet<Block> matchableBlocksSet)
+    // private bool checkMatch(Block srcBlock, HashSet<Block> matchableBlocksSet, List<MatchCheck.ItemInfo> itemInfos)
+    private bool checkMatch(Block srcBlock, PopInfo popInfo)
     {
         bool bMatched = false;
 
@@ -168,12 +224,13 @@ public class Player : MonoBehaviour
 
         foreach (var matchCheck in _matchChecks)
         {
-            if (matchCheck.Check(srcBlock, out List<Block> matchableBlocks))
+            // if (matchCheck.Check(srcBlock, out List<Block> matchableBlocks, itemInfos))
+            if (matchCheck.Check(srcBlock, popInfo))
             {
-                foreach(Block matchableBlock in matchableBlocks)
-                {
-                    matchableBlocksSet.Add(matchableBlock);
-                }
+                //foreach(Block matchableBlock in matchableBlocks)
+                //{
+                //    matchableBlocksSet.Add(matchableBlock);
+                //}
 
                 bMatched = true;
             }
@@ -182,7 +239,8 @@ public class Player : MonoBehaviour
         return bMatched;
     }
 
-    private bool checkMatchAll(HashSet<Block> matchableBlocksSet)
+    // private bool checkMatchAll(HashSet<Block> matchableBlocksSet, List<MatchCheck.ItemInfo> itemInfos)
+    private bool checkMatchAll(PopInfo popInfo)
     {
         var board = HexBoardManager.Instance;
         List<Block> blocks = board.Blocks;
@@ -190,7 +248,8 @@ public class Player : MonoBehaviour
 
         foreach (Block block in blocks)
         {
-            if(checkMatch(block, matchableBlocksSet))
+            // if(checkMatch(block, matchableBlocksSet, itemInfos))
+            if(checkMatch(block, popInfo))
             {
                 bMatched = true;
             }
@@ -199,10 +258,12 @@ public class Player : MonoBehaviour
         return bMatched;
     }
 
-    private void checkBreakableBlock(HashSet<Block> matchableBlocksSet)
+    //private void checkBreakableBlock(HashSet<Block> matchableBlocksSet)
+    private void checkBreakableBlock(PopInfo popInfo)
     {
         var board = HexBoardManager.Instance;
-        var matchableBlocks = new List<Block>(matchableBlocksSet);
+        //var matchableBlocks = new List<Block>(matchableBlocksSet);
+        var matchableBlocks = new List<Block>(popInfo.matchableBlocksSet);
         var decreasedBlocks = new HashSet<Block>(10);
 
         foreach (Block block in matchableBlocks)
@@ -238,7 +299,8 @@ public class Player : MonoBehaviour
 
                             if(breakableBlock.hp <= 0)
                             {
-                                matchableBlocksSet.Add(breakableBlock);
+                                //matchableBlocksSet.Add(breakableBlock);
+                                popInfo.destoryBlocksSet.Add(breakableBlock);
                             }
 
                             decreasedBlocks.Add(breakableBlock);
@@ -247,6 +309,60 @@ public class Player : MonoBehaviour
                 }
             }
         }
+    }
+
+    //private void createItemBlock(List<MatchCheck.ItemInfo> itemInfos)
+    private void createItemBlock(PopInfo popInfo)
+    {
+        var board = HexBoardManager.Instance;
+        var searchedBlocks = new HashSet<Block>();
+
+        //foreach (MatchCheck.ItemInfo itemInfo in itemInfos)
+        foreach (MatchCheck.ItemInfo itemInfo in popInfo.createdItemInfos)
+        {
+            bool bSearchConflict = false;
+
+            foreach(Block matchableBlock in itemInfo.matchableBlocks)
+            {
+                if(!searchedBlocks.Add(matchableBlock))
+                {
+                    bSearchConflict = true;
+                    break;
+                }
+            }
+
+            if(!bSearchConflict)
+            {
+                Block itemBlock = board.CreateBlock(itemInfo.prefItemBlock, itemInfo.srcBlock.index);
+                itemBlock.SetColor(itemInfo.srcBlock.colorType);
+            }
+        }
+    }
+
+    private bool useItemBlock(PopInfo popInfo)
+    {
+        var board = HexBoardManager.Instance;
+        bool bUsed = false;
+
+        foreach(Block matchableBlock in popInfo.matchableBlocksSet)
+        {
+            var itemBlock = matchableBlock as ItemBlock;
+
+            if (itemBlock != null)
+            {
+                // 아이템 발동
+                List<Block> targetBlocks = itemBlock.GetTargetBlocks();
+
+                foreach (Block targetBlock in targetBlocks)
+                {
+                    popInfo.destoryBlocksSet.Add(targetBlock);
+                }
+
+                bUsed = true;
+            }
+        }
+
+        return bUsed;
     }
 
     private bool dropBlocks()

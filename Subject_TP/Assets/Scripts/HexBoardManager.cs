@@ -85,9 +85,24 @@ public class HexBoardManager : MonoBehaviour
 
             if(cell.spawn)
             {
-                createBlock(_prefBlock, i);
+                CreateBlock(_prefBlock, i);
             }
         }
+    }
+
+    public Block CreateBlock(Block origin, int cellIndex)
+    {
+        Block newBlock = Instantiate(origin);
+        newBlock.Init(cellIndex);
+        //newBlock.index = cellIndex;
+        //newBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
+        mBlocks.Add(newBlock);
+
+        HexaVector2Int coordinates = GetCoordinates(cellIndex);
+        SetBlockIndex(coordinates.row, coordinates.column, newBlock);
+        SetBlockWorldPosition(coordinates.row, coordinates.column, newBlock);
+
+        return newBlock;
     }
 
     public void DestroyBlock(Block block)
@@ -211,11 +226,13 @@ public class HexBoardManager : MonoBehaviour
         mBlocks = new List<Block>(_board.Length);
 
         // createBlock(_prefBreakableBlock, GetIndex(0, 2));
-        createBlock(_prefBreakableBlock, GetIndex(2, 3));
-        createBlock(_prefBreakableBlock, GetIndex(1, 0));
+        // CreateBlock(_prefBreakableBlock, GetIndex(2, 3));
+        CreateBlock(_prefBreakableBlock, GetIndex(1, 0));
 
-        createBlock(_prefBlock, GetIndex(1, 3)).SetColor(Block.EColor.Orange);
-        createBlock(_prefBlock, GetIndex(0, 3)).SetColor(Block.EColor.Orange);
+        CreateBlock(_prefBlock, GetIndex(0, 3)).SetColor(Block.EColor.Orange);
+        CreateBlock(_prefBlock, GetIndex(1, 3)).SetColor(Block.EColor.Orange);
+        CreateBlock(_prefBlock, GetIndex(2, 3)).SetColor(Block.EColor.Orange);
+        CreateBlock(_prefBlock, GetIndex(3, 3)).SetColor(Block.EColor.Orange);
 
         for (int i = 0; i < _board.Length; ++i)
         {
@@ -228,7 +245,7 @@ public class HexBoardManager : MonoBehaviour
 
             if (GetBlock(GetCoordinates(i)) == null)
             {
-                createBlock(_prefBlock, i);
+                CreateBlock(_prefBlock, i);
             }
             //Block newBlock = Instantiate(_prefBlock);
             //newBlock.index = i;
@@ -239,20 +256,5 @@ public class HexBoardManager : MonoBehaviour
             //SetBlockIndex(coordinates.row, coordinates.column, newBlock);
             //SetBlockWorldPosition(coordinates.row, coordinates.column, newBlock);
         }
-    }
-
-    private Block createBlock(Block origin, int cellIndex)
-    {
-        Block newBlock = Instantiate(origin);
-        newBlock.Init(cellIndex);
-        //newBlock.index = cellIndex;
-        //newBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
-        mBlocks.Add(newBlock);
-
-        HexaVector2Int coordinates = GetCoordinates(cellIndex);
-        SetBlockIndex(coordinates.row, coordinates.column, newBlock);
-        SetBlockWorldPosition(coordinates.row, coordinates.column, newBlock);
-
-        return newBlock;
     }
 }
