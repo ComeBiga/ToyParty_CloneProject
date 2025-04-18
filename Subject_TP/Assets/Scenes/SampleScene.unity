@@ -3730,6 +3730,7 @@ MonoBehaviour:
   - {fileID: 1245703312}
   - {fileID: 841790530}
   _prefBlock: {fileID: 3477094016558485107, guid: 97eaa2cfd7ea3434696e06542fd40fa7, type: 3}
+  _prefBreakableBlock: {fileID: 8570043408863485004, guid: 3ef5501dc24f0f84495299d8c018267b, type: 3}
 --- !u!4 &1941491822
 Transform:
   m_ObjectHideFlags: 0

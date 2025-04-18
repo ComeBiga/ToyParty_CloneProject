@@ -6,6 +6,15 @@ public static class HexaUtility
 {
     public enum EDirection { Up, RightUp, RightDown, Down, LeftDown, LeftUp }
 
+    public static readonly EDirection[] directions = new EDirection[]   {
+                                                                            EDirection.Up,
+                                                                            EDirection.RightUp,
+                                                                            EDirection.RightDown,
+                                                                            EDirection.Down,
+                                                                            EDirection.LeftDown,
+                                                                            EDirection.LeftUp,
+                                                                        };
+
     //public static readonly (int, int)[] oddDelta = new (int, int)[] { 
     //                                                                    (1, 0), 
     //                                                                    (1, 1), 

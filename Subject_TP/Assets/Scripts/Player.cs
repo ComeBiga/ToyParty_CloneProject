@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -58,6 +57,8 @@ public class Player : MonoBehaviour
                 bool bSrcPopping = checkMatch(mSrcBlock, matchableBlocksSet);
                 bool bDstPopping = checkMatch(mDstBlock, matchableBlocksSet);
 
+                checkBreakableBlock(matchableBlocksSet);
+
                 board.DestroyBlocks(matchableBlocksSet);
 
                 mbPopping = bSrcPopping || bDstPopping;
@@ -76,6 +77,8 @@ public class Player : MonoBehaviour
                             {
                                 matchableBlocksSet.Clear();
                                 bool bMatched = checkMatchAll(matchableBlocksSet);
+
+                                checkBreakableBlock(matchableBlocksSet);
 
                                 board.DestroyBlocks(matchableBlocksSet);
 
@@ -158,6 +161,11 @@ public class Player : MonoBehaviour
     {
         bool bMatched = false;
 
+        if (!srcBlock.isMatchable)
+        {
+            return bMatched;
+        }
+
         foreach (var matchCheck in _matchChecks)
         {
             if (matchCheck.Check(srcBlock, out List<Block> matchableBlocks))
@@ -189,6 +197,56 @@ public class Player : MonoBehaviour
         }
 
         return bMatched;
+    }
+
+    private void checkBreakableBlock(HashSet<Block> matchableBlocksSet)
+    {
+        var board = HexBoardManager.Instance;
+        var matchableBlocks = new List<Block>(matchableBlocksSet);
+        var decreasedBlocks = new HashSet<Block>(10);
+
+        foreach (Block block in matchableBlocks)
+        {
+            HexaVector2Int blockCoordinates = board.GetCoordinates(block.index);
+
+            foreach (HexaUtility.EDirection dir in HexaUtility.directions)
+            {
+                HexaVector2Int delta = HexaUtility.GetDelta(blockCoordinates.column, dir);
+                HexaVector2Int nextCoordinates = new HexaVector2Int(blockCoordinates.row + delta.row, blockCoordinates.column + delta.column);
+
+                if (!board.IsInRange(nextCoordinates))
+                {
+                    continue;
+                }
+
+                if (!board.IsEnableCell(nextCoordinates))
+                {
+                    continue;
+                }
+
+                Block nextBlock = board.GetBlock(nextCoordinates.row, nextCoordinates.column);
+
+                if(nextBlock != null)
+                {
+                    var breakableBlock = nextBlock as BreakableBlock;
+
+                    if(breakableBlock != null)
+                    {
+                        if(!decreasedBlocks.Contains(breakableBlock))
+                        { 
+                            breakableBlock.DecreaseHP(1);
+
+                            if(breakableBlock.hp <= 0)
+                            {
+                                matchableBlocksSet.Add(breakableBlock);
+                            }
+
+                            decreasedBlocks.Add(breakableBlock);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private bool dropBlocks()

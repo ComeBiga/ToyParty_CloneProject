@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,10 +8,18 @@ public class Block : MonoBehaviour
     public enum EColor { Red, Orange, Yellow, Green, Blue, Purple };
 
     public int index;
+    public bool isMatchable = true;
     public EColor colorType = EColor.Red;
 
     [SerializeField]
     private Sprite[] _sprtBlock;
+
+    public virtual void Init(int index)
+    {
+        this.index = index;
+
+        SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
+    }
 
     public void SetColor(EColor colorType)
     {
@@ -26,7 +33,7 @@ public class Block : MonoBehaviour
 #endif
     }
 
-    public bool IsMatchable(Block srcblock)
+    public virtual bool IsMatchable(Block srcblock)
     {
         return colorType == srcblock.colorType;
     }

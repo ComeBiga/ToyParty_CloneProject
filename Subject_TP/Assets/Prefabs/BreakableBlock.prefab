@@ -10,10 +10,11 @@ GameObject:
   m_Component:
   - component: {fileID: 7422420507647069627}
   - component: {fileID: 9177104499109715811}
-  - component: {fileID: 3477094016558485107}
+  - component: {fileID: 8570043408863485004}
   - component: {fileID: 8388451175959221559}
+  - component: {fileID: 5667832480740640906}
   m_Layer: 0
-  m_Name: Block
+  m_Name: BreakableBlock
   m_TagString: Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -75,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 10
-  m_Sprite: {fileID: 21300000, guid: 318133a33ecb2d84eb75ed8f55ced1d3, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f6c1c14af14816a4e98fbb96a8d1deb9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -86,7 +87,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &3477094016558485107
+--- !u!114 &8570043408863485004
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -95,19 +96,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 9090610344565768562}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9d6885ddfbbd18f489cd0fdfc47fb198, type: 3}
+  m_Script: {fileID: 11500000, guid: 0c08e512ba83eaa4c8cb3bbb90d32013, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   index: 0
-  isMatchable: 1
-  colorType: 0
-  _sprtBlock:
-  - {fileID: 21300000, guid: 318133a33ecb2d84eb75ed8f55ced1d3, type: 3}
-  - {fileID: 21300000, guid: 9ec83735088c9094e90f5c095ddb7364, type: 3}
-  - {fileID: 21300000, guid: e4a9742dc0d27a840835d1212b8591a4, type: 3}
-  - {fileID: 21300000, guid: 6ff937dbb4003e94db0aaaa9c3448f9c, type: 3}
-  - {fileID: 21300000, guid: 6a6b8fb9caaa75a42a40ce6e711326ad, type: 3}
-  - {fileID: 21300000, guid: 5e25169021283f343bc9743b9d521e62, type: 3}
+  isMatchable: 0
+  colorType: 1
+  _sprtBlock: []
+  hp: 2
+  _animator: {fileID: 5667832480740640906}
+  _defaultBlock: {fileID: 21300000, guid: f6c1c14af14816a4e98fbb96a8d1deb9, type: 3}
+  _activatedBlock: {fileID: 21300000, guid: 65504dbdb03286246b0d9e18f661c33d, type: 3}
 --- !u!58 &8388451175959221559
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -124,3 +123,24 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.18888889
+--- !u!95 &5667832480740640906
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9090610344565768562}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 051ef39e2e340ef47912c894dab741c8, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

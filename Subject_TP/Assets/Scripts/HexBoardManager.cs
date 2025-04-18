@@ -20,6 +20,8 @@ public class HexBoardManager : MonoBehaviour
     private Cell[] _board;
     [SerializeField]
     private Block _prefBlock;
+    [SerializeField]
+    private BreakableBlock _prefBreakableBlock;
 
     private List<Block> mBlocks;
 
@@ -36,6 +38,11 @@ public class HexBoardManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    public Block GetBlock(HexaVector2Int coordinates)
+    {
+        return GetBlock(coordinates.row, coordinates.column);
     }
 
     public void SetBlockIndex(int row, int column, Block block)
@@ -78,7 +85,7 @@ public class HexBoardManager : MonoBehaviour
 
             if(cell.spawn)
             {
-                createBlock(i);
+                createBlock(_prefBlock, i);
             }
         }
     }
@@ -203,14 +210,26 @@ public class HexBoardManager : MonoBehaviour
     {
         mBlocks = new List<Block>(_board.Length);
 
+        // createBlock(_prefBreakableBlock, GetIndex(0, 2));
+        createBlock(_prefBreakableBlock, GetIndex(2, 3));
+        createBlock(_prefBreakableBlock, GetIndex(1, 0));
+
+        createBlock(_prefBlock, GetIndex(1, 3)).SetColor(Block.EColor.Orange);
+        createBlock(_prefBlock, GetIndex(0, 3)).SetColor(Block.EColor.Orange);
+
         for (int i = 0; i < _board.Length; ++i)
         {
-            if (!_board[i].enable)
+            Cell cell = _board[i];
+
+            if (!cell.enable)
             {
                 continue;
             }
 
-            createBlock(i);
+            if (GetBlock(GetCoordinates(i)) == null)
+            {
+                createBlock(_prefBlock, i);
+            }
             //Block newBlock = Instantiate(_prefBlock);
             //newBlock.index = i;
             //newBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
@@ -222,11 +241,12 @@ public class HexBoardManager : MonoBehaviour
         }
     }
 
-    private Block createBlock(int cellIndex)
+    private Block createBlock(Block origin, int cellIndex)
     {
-        Block newBlock = Instantiate(_prefBlock);
-        newBlock.index = cellIndex;
-        newBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
+        Block newBlock = Instantiate(origin);
+        newBlock.Init(cellIndex);
+        //newBlock.index = cellIndex;
+        //newBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
         mBlocks.Add(newBlock);
 
         HexaVector2Int coordinates = GetCoordinates(cellIndex);
