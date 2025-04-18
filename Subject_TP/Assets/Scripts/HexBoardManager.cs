@@ -85,7 +85,7 @@ public class HexBoardManager : MonoBehaviour
 
             if(cell.spawn)
             {
-                CreateBlock(_prefBlock, i);
+                CreateBlock(_prefBlock, i).SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
             }
         }
     }
@@ -245,7 +245,7 @@ public class HexBoardManager : MonoBehaviour
 
             if (GetBlock(GetCoordinates(i)) == null)
             {
-                CreateBlock(_prefBlock, i);
+                CreateBlock(_prefBlock, i).SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
             }
             //Block newBlock = Instantiate(_prefBlock);
             //newBlock.index = i;

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 9177104499109715811}
   - component: {fileID: 3477094016558485107}
   - component: {fileID: 8388451175959221559}
+  - component: {fileID: 7008415522422138328}
   m_Layer: 0
   m_Name: Block
   m_TagString: Block
@@ -108,6 +109,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 6ff937dbb4003e94db0aaaa9c3448f9c, type: 3}
   - {fileID: 21300000, guid: 6a6b8fb9caaa75a42a40ce6e711326ad, type: 3}
   - {fileID: 21300000, guid: 5e25169021283f343bc9743b9d521e62, type: 3}
+  _animator: {fileID: 7008415522422138328}
 --- !u!58 &8388451175959221559
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -124,3 +126,24 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.18888889
+--- !u!95 &7008415522422138328
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9090610344565768562}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 24ff2a43345c2504e916e53a49ef4471, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

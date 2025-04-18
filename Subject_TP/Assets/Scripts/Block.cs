@@ -13,12 +13,14 @@ public class Block : MonoBehaviour
 
     [SerializeField]
     private Sprite[] _sprtBlock;
+    [SerializeField]
+    private Animator _animator;
 
     public virtual void Init(int index)
     {
         this.index = index;
 
-        SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
+        // SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
     }
 
     public void SetColor(EColor colorType)
@@ -28,10 +30,25 @@ public class Block : MonoBehaviour
         spriteRenderer.sprite = _sprtBlock[(int)colorType];
         this.colorType = colorType;
 
+        if (_animator != null)
+        {
+            _animator.enabled = true;
+            _animator?.SetTrigger(colorType.ToString());
+        }
+
 #if UNITY_EDITOR
-        EditorUtility.SetDirty(this.gameObject);
+            EditorUtility.SetDirty(this.gameObject);
 #endif
     }
+
+    public void AnimateDestroy()
+    {
+        if (_animator != null)
+        {
+            _animator.enabled = true;
+            _animator?.SetTrigger("Destroy");
+        }
+        }
 
     public virtual bool IsMatchable(Block srcblock)
     {

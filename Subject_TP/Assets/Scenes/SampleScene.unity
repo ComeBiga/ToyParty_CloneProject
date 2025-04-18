@@ -476,6 +476,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _minMatchCount: 3
+  _minItemMatchCount: 4
+  _prefItemBlock: {fileID: 670163332232927012, guid: 85395f55d6f788041b82a90ab4f12166, type: 3}
 --- !u!1 &304352417
 GameObject:
   m_ObjectHideFlags: 0

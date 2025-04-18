@@ -99,6 +99,16 @@ public class Player : MonoBehaviour
                 checkBreakableBlock(popInfo);
 
                 //board.DestroyBlocks(matchableBlocksSet);
+                bool bDestroy = false;
+                foreach(Block destroyBlock in popInfo.destoryBlocksSet)
+                {
+                    destroyBlock.AnimateDestroy();
+                    bDestroy = true;
+                }
+                if(bDestroy)
+                {
+                    yield return new WaitForSeconds(.4f);
+                }
                 board.DestroyBlocks(popInfo.destoryBlocksSet);
 
                 popInfo.Reset();
@@ -133,6 +143,16 @@ public class Player : MonoBehaviour
                                 checkBreakableBlock(popInfo);
 
                                 //board.DestroyBlocks(matchableBlocksSet);
+                                bDestroy = false;
+                                foreach (Block destroyBlock in popInfo.destoryBlocksSet)
+                                {
+                                    destroyBlock.AnimateDestroy();
+                                    bDestroy = true;
+                                }
+                                if (bDestroy)
+                                {
+                                    yield return new WaitForSeconds(.4f);
+                                }
                                 board.DestroyBlocks(popInfo.destoryBlocksSet);
 
                                 popInfo.Reset();
