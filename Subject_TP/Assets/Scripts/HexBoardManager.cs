@@ -105,6 +105,18 @@ public class HexBoardManager : MonoBehaviour
         return newBlock;
     }
 
+    public Block ReplaceBlock(Block origin, int cellIndex)
+    {
+        Block block = GetBlock(GetCoordinates(cellIndex));
+
+        if (block != null)
+        {
+            DestroyBlock(block);
+        }
+
+        return CreateBlock(origin, cellIndex);
+    }
+
     public void DestroyBlock(Block block)
     {
         mBlocks.Remove(block);

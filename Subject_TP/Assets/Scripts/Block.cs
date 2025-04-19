@@ -48,7 +48,7 @@ public class Block : MonoBehaviour
             _animator.enabled = true;
             _animator?.SetTrigger("Destroy");
         }
-        }
+    }
 
     public virtual bool IsMatchable(Block srcblock)
     {

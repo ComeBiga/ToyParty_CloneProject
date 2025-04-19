@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class StageManager : MonoBehaviour
 {
@@ -17,8 +19,36 @@ public class StageManager : MonoBehaviour
     private float _swapDuration;
     [SerializeField]
     private float _dropDuration;
+    [SerializeField]
+    private int _moveCount = 20;
+    [SerializeField]
+    private int _goalCount = 10;
+
+    [Header("UI")]
+    [SerializeField]
+    private TextMeshProUGUI _txtMoveCount;
+    [SerializeField]
+    private TextMeshProUGUI _txtGoalCount;
+    [SerializeField]
+    private TextMeshProUGUI _txtLevelClear;
+    [SerializeField]
+    private TextMeshProUGUI _txtLevelFail;
+    [SerializeField]
+    private Button _btnPause;
+    [SerializeField]
+    private Button _btnResume;
+    [SerializeField]
+    private Button _btnPauseRetry;
+    [SerializeField]
+    private Button _btnClearRetry;
+    [SerializeField]
+    private GameObject _goPanelPause;
+    [SerializeField]
+    private GameObject _goPanelClear;
 
     private HexBoardManager mBoard;
+    private int mRemainMoveCount;
+    private int mRemainGoalCount;
 
     public Block SpawnBlock()
     {
@@ -40,21 +70,28 @@ public class StageManager : MonoBehaviour
     {
         mBoard = HexBoardManager.Instance;
 
-        // createBlock(_prefBreakableBlock, GetIndex(0, 2));
-        // CreateBlock(_prefBreakableBlock, GetIndex(2, 3));
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(1, 1));
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(0, 2));
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(0, 3));
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(0, 4));
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(1, 5));
+        _btnPause.onClick.AddListener(() => _goPanelPause.gameObject.SetActive(true));
+        _btnResume.onClick.AddListener(() => _goPanelPause.gameObject.SetActive(false));
+        _btnPauseRetry.onClick.AddListener(() =>
+        {
+            _goPanelPause.gameObject.SetActive(false);
+            reloadStage();
+        });
+        _btnClearRetry.onClick.AddListener(() =>
+        {
+            _goPanelClear.gameObject.SetActive(false);
+            reloadStage();
+        });
+        _btnPause.interactable = true;
 
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(2, 3));
+        loadStage();
+    }
 
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(4, 1));
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(4, 2));
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(4, 4));
-        mBoard.CreateBlock(_prefBreakableBlock, mBoard.GetIndex(4, 5));
-        
+    private void loadStage()
+    {
+        mRemainMoveCount = _moveCount;
+        _txtMoveCount.text = $"{mRemainMoveCount}";
+
         for (int i = 0; i < mBoard.Cells.Length; ++i)
         {
             Cell cell = mBoard.Cells[i];
@@ -72,7 +109,28 @@ public class StageManager : MonoBehaviour
 
         cleanUpBoard(_popInfo);
 
+        createGoalBlocks();
+
         StartCoroutine(eInputRoutine());
+    }
+    
+    private void createGoalBlocks()
+    {
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(1, 1));
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(0, 2));
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(0, 3));
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(0, 4));
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(1, 5));
+
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(2, 3));
+
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(4, 1));
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(4, 2));
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(4, 4));
+        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(4, 5));
+
+        mRemainGoalCount = 10;
+        _txtGoalCount.text = $"{mRemainGoalCount}";
     }
 
     /// <summary>
@@ -114,12 +172,25 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    private void reloadStage()
+    {
+        for(int i = mBoard.Blocks.Count - 1; i >= 0; --i)
+        {
+            mBoard.DestroyBlock(mBoard.Blocks[i]);
+        }
+
+        _btnPause.interactable = true;
+
+        loadStage();
+    }
+
     private IEnumerator eInputRoutine()
     {
+        bool isStageEnd = false;
         Block mSrcBlock = null;
         Block mDstBlock = null;
 
-        while (true)
+        while (!isStageEnd)
         {
             if (Input.GetMouseButton(0))
             {
@@ -142,6 +213,7 @@ public class StageManager : MonoBehaviour
                     continue;
                 }
 
+                _btnPause.interactable = false;
                 mDstBlock = block;
 
                 var board = HexBoardManager.Instance;
@@ -159,6 +231,8 @@ public class StageManager : MonoBehaviour
 
                 if (bSwapMatched)
                 {
+                    _txtMoveCount.text = $"{--mRemainMoveCount}";
+
                     _popInfo.UseItemBlock();
                     _popInfo.CreateItemBlock();
                     _popInfo.CheckBreakableBlock();
@@ -192,6 +266,8 @@ public class StageManager : MonoBehaviour
 
                                 if (!bMatched)
                                 {
+                                    _btnPause.interactable = true;
+
                                     break;
                                 }
                             }
@@ -211,14 +287,34 @@ public class StageManager : MonoBehaviour
                 {
                     board.SwapBlock(mSrcBlock, mDstBlock);
                     yield return eAnimateBlockSwap(mSrcBlock, mDstBlock);
+
+                    _btnPause.interactable = true;
                 }
 
                 mSrcBlock = null;
                 mDstBlock = null;
             }
 
+            if(mRemainGoalCount <= 0 || mRemainMoveCount <= 0)
+            {
+                isStageEnd = true;
+            }
+
             yield return null;
         }
+
+        if(mRemainGoalCount <= 0)
+        {
+            //_txtLevelClear.gameObject.SetActive(true);
+            _goPanelClear.gameObject.SetActive(true);
+        }
+        else if(mRemainMoveCount <= 0)
+        {
+            //_txtLevelFail.gameObject.SetActive(true);
+            _goPanelClear.gameObject.SetActive(true);
+        }
+
+        _btnPause.interactable = false;
     }
 
     private Block raycastBlock()
@@ -273,6 +369,11 @@ public class StageManager : MonoBehaviour
         {
             destroyBlock.AnimateDestroy();
             bDestroy = true;
+
+            if(destroyBlock is BreakableBlock)
+            {
+                _txtGoalCount.text = $"{--mRemainGoalCount}";
+            }
         }
 
         if (bDestroy)
