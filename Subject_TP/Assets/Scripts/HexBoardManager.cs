@@ -23,7 +23,7 @@ public class HexBoardManager : MonoBehaviour
     [SerializeField]
     private BreakableBlock _prefBreakableBlock;
 
-    private List<Block> mBlocks;
+    private List<Block> mBlocks = new List<Block>(100);
 
     public Block GetBlock(int row, int column)
     {
@@ -219,42 +219,5 @@ public class HexBoardManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
-    }
-
-    private void Start()
-    {
-        mBlocks = new List<Block>(_board.Length);
-
-        // createBlock(_prefBreakableBlock, GetIndex(0, 2));
-        // CreateBlock(_prefBreakableBlock, GetIndex(2, 3));
-        CreateBlock(_prefBreakableBlock, GetIndex(1, 0));
-
-        CreateBlock(_prefBlock, GetIndex(0, 3)).SetColor(Block.EColor.Orange);
-        CreateBlock(_prefBlock, GetIndex(1, 3)).SetColor(Block.EColor.Orange);
-        CreateBlock(_prefBlock, GetIndex(2, 3)).SetColor(Block.EColor.Orange);
-        CreateBlock(_prefBlock, GetIndex(3, 3)).SetColor(Block.EColor.Orange);
-
-        for (int i = 0; i < _board.Length; ++i)
-        {
-            Cell cell = _board[i];
-
-            if (!cell.enable)
-            {
-                continue;
-            }
-
-            if (GetBlock(GetCoordinates(i)) == null)
-            {
-                CreateBlock(_prefBlock, i).SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
-            }
-            //Block newBlock = Instantiate(_prefBlock);
-            //newBlock.index = i;
-            //newBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
-            //mBlocks[i] = newBlock;
-
-            //HexaVector2Int coordinates = GetCoordinates(i);
-            //SetBlockIndex(coordinates.row, coordinates.column, newBlock);
-            //SetBlockWorldPosition(coordinates.row, coordinates.column, newBlock);
-        }
     }
 }

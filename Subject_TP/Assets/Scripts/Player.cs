@@ -45,6 +45,13 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
+        // StartCoroutine(eStart());
+    }
+
+    private IEnumerator eStart()
+    {
+        yield return new WaitForSeconds(1f);
+
         StartCoroutine(eInputRoutine());
     }
 
@@ -99,17 +106,18 @@ public class Player : MonoBehaviour
                 checkBreakableBlock(popInfo);
 
                 //board.DestroyBlocks(matchableBlocksSet);
-                bool bDestroy = false;
-                foreach(Block destroyBlock in popInfo.destoryBlocksSet)
-                {
-                    destroyBlock.AnimateDestroy();
-                    bDestroy = true;
-                }
-                if(bDestroy)
-                {
-                    yield return new WaitForSeconds(.4f);
-                }
-                board.DestroyBlocks(popInfo.destoryBlocksSet);
+                //bool bDestroy = false;
+                //foreach(Block destroyBlock in popInfo.destoryBlocksSet)
+                //{
+                //    destroyBlock.AnimateDestroy();
+                //    bDestroy = true;
+                //}
+                //if(bDestroy)
+                //{
+                //    yield return new WaitForSeconds(.4f);
+                //}
+                //board.DestroyBlocks(popInfo.destoryBlocksSet);
+                yield return eDestroyBlocks(popInfo);
 
                 popInfo.Reset();
 
@@ -125,7 +133,7 @@ public class Player : MonoBehaviour
                         // if(Input.GetKeyDown(KeyCode.Space))
                         {
                             bool bSpawned = spawnBlock();
-                            bool bDropped = dropBlocks();
+                            bool bDropped = dropBlocks(_dropDuration);
 
                             if (!bDropped && !bSpawned)
                             {
@@ -143,17 +151,18 @@ public class Player : MonoBehaviour
                                 checkBreakableBlock(popInfo);
 
                                 //board.DestroyBlocks(matchableBlocksSet);
-                                bDestroy = false;
-                                foreach (Block destroyBlock in popInfo.destoryBlocksSet)
-                                {
-                                    destroyBlock.AnimateDestroy();
-                                    bDestroy = true;
-                                }
-                                if (bDestroy)
-                                {
-                                    yield return new WaitForSeconds(.4f);
-                                }
-                                board.DestroyBlocks(popInfo.destoryBlocksSet);
+                                //bDestroy = false;
+                                //foreach (Block destroyBlock in popInfo.destoryBlocksSet)
+                                //{
+                                //    destroyBlock.AnimateDestroy();
+                                //    bDestroy = true;
+                                //}
+                                //if (bDestroy)
+                                //{
+                                //    yield return new WaitForSeconds(.4f);
+                                //}
+                                //board.DestroyBlocks(popInfo.destoryBlocksSet);
+                                yield return eDestroyBlocks(popInfo);
 
                                 popInfo.Reset();
 
@@ -385,7 +394,26 @@ public class Player : MonoBehaviour
         return bUsed;
     }
 
-    private bool dropBlocks()
+    private IEnumerator eDestroyBlocks(PopInfo popInfo)
+    {
+        var board = HexBoardManager.Instance;
+        bool bDestroy = false;
+
+        foreach (Block destroyBlock in popInfo.destoryBlocksSet)
+        {
+            destroyBlock.AnimateDestroy();
+            bDestroy = true;
+        }
+
+        if (bDestroy)
+        {
+            yield return new WaitForSeconds(.4f);
+        }
+
+        board.DestroyBlocks(popInfo.destoryBlocksSet);
+    }
+
+    private bool dropBlocks(float duration)
     {
         var board = HexBoardManager.Instance;
 
@@ -462,7 +490,7 @@ public class Player : MonoBehaviour
                     }
 
                     board.SetBlockIndex(downCoordinates, block);
-                    StartCoroutine(eDropBlock(block, downCoordinates));
+                    StartCoroutine(eDropBlock(block, downCoordinates, duration));
 
                     bDropped = true;
 
@@ -474,14 +502,14 @@ public class Player : MonoBehaviour
         return bDropped;
     }
 
-    private IEnumerator eDropBlock(Block srcBlock, HexaVector2Int toCoordinates)
+    private IEnumerator eDropBlock(Block srcBlock, HexaVector2Int toCoordinates, float duration)
     {
         var board = HexBoardManager.Instance;
         Vector3 fromPosition = srcBlock.transform.position;
         Vector3 toPosition = board.GetWorldPosition(toCoordinates);
         Vector3 dir = (toPosition - fromPosition).normalized;
 
-        float duration = _dropDuration;
+        // float duration = _dropDuration;
         float timer = 0f;
 
         while(timer < duration)
@@ -519,7 +547,9 @@ public class Player : MonoBehaviour
 
         if(downBlock == null)
         {
-            board.SpawnBlock();
+            // board.SpawnBlock();
+            StageManager.Instance.SpawnBlock();
+
             return true;
         }
 
