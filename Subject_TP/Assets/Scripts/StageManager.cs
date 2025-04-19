@@ -47,6 +47,7 @@ public class StageManager : MonoBehaviour
     private GameObject _goPanelClear;
 
     private HexBoardManager mBoard;
+    private Coroutine mInputRoutine = null;
     private int mRemainMoveCount;
     private int mRemainGoalCount;
 
@@ -111,7 +112,7 @@ public class StageManager : MonoBehaviour
 
         createGoalBlocks();
 
-        StartCoroutine(eInputRoutine());
+        mInputRoutine = StartCoroutine(eInputRoutine());
     }
     
     private void createGoalBlocks()
@@ -141,6 +142,8 @@ public class StageManager : MonoBehaviour
     {
         var board = HexBoardManager.Instance;
         int breaker = 0;
+        popInfo.Reset();
+
         while (true)
         {
             // if(Input.GetKeyDown(KeyCode.Space))
@@ -174,7 +177,10 @@ public class StageManager : MonoBehaviour
 
     private void reloadStage()
     {
-        for(int i = mBoard.Blocks.Count - 1; i >= 0; --i)
+        StopCoroutine(mInputRoutine);
+        mInputRoutine = null;
+
+        for (int i = mBoard.Blocks.Count - 1; i >= 0; --i)
         {
             mBoard.DestroyBlock(mBoard.Blocks[i]);
         }
