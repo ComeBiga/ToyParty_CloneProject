@@ -15,6 +15,8 @@ public class Block : MonoBehaviour
     private Sprite[] _sprtBlock;
     [SerializeField]
     private Animator _animator;
+    [SerializeField]
+    private Animator _animatorLight;
 
     public virtual void Init(int index)
     {
@@ -39,6 +41,14 @@ public class Block : MonoBehaviour
 #if UNITY_EDITOR
             EditorUtility.SetDirty(this.gameObject);
 #endif
+    }
+
+    public void AnimateLight()
+    {
+        if (_animatorLight == null)
+            return;
+
+        _animatorLight.SetTrigger("Light");
     }
 
     public void AnimateDestroy()

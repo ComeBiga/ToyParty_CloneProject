@@ -312,8 +312,8 @@ public class StageManager : MonoBehaviour
                         _txtMoveCount.text = $"{--mRemainMoveCount}";
                     }
 
-                    _popInfo.UseItemBlock();
-                    _popInfo.CreateItemBlock();
+                    yield return _popInfo.UseItemBlock();
+                    yield return _popInfo.CreateItemBlock();
                     _popInfo.CheckBreakableBlock();
 
                     yield return eDestroyBlocks(_popInfo);
@@ -321,7 +321,7 @@ public class StageManager : MonoBehaviour
                     _popInfo.Reset();
                     _popInfo.state = PopInfo.EState.Drop;
 
-                    int breaker = 0;
+                    // int breaker = 0;
                     while (true)
                     {
                         // if(Input.GetKeyDown(KeyCode.Space))
@@ -337,8 +337,8 @@ public class StageManager : MonoBehaviour
 
                                 bool bMatched = _popInfo.CheckMatchAll();
 
-                                _popInfo.UseItemBlock();
-                                _popInfo.CreateItemBlock();
+                                yield return _popInfo.UseItemBlock();
+                                yield return _popInfo.CreateItemBlock();
                                 _popInfo.CheckBreakableBlock();
 
                                 yield return eDestroyBlocks(_popInfo);
@@ -351,11 +351,11 @@ public class StageManager : MonoBehaviour
                                 }
                             }
 
-                            if (++breaker > 100)
-                            {
-                                Debug.LogError("Drop Loop Break");
-                                break;
-                            }
+                            //if (++breaker > 100)
+                            //{
+                            //    Debug.LogError("Drop Loop Break");
+                            //    break;
+                            //}
                         }
 
                     }

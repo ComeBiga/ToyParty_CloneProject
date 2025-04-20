@@ -74,7 +74,7 @@ public class PopInfo : MonoBehaviour
         return bMatched;
     }
 
-    public bool UseItemBlock()
+    public IEnumerator UseItemBlock()
     {
         bool bUsed = false;
 
@@ -90,16 +90,18 @@ public class PopInfo : MonoBehaviour
                 foreach (Block targetBlock in targetBlocks)
                 {
                     destoryBlocksSet.Add(targetBlock);
+                    targetBlock.AnimateLight();
                 }
 
                 bUsed = true;
+                yield return new WaitForSeconds(.1f);
             }
         }
 
-        return bUsed;
+        // return bUsed;
     }
 
-    public void CreateItemBlock()
+    public IEnumerator CreateItemBlock()
     {
         var board = HexBoardManager.Instance;
         var searchedBlocks = new HashSet<Block>();
@@ -119,6 +121,30 @@ public class PopInfo : MonoBehaviour
 
             if (!bSearchConflict)
             {
+                float timer = 0f;
+                float duration = .2f;
+                HexaVector2Int dstCoordinates = board.GetCoordinates(itemInfo.srcBlock.index);
+                Cell dstCell = board.GetCell(dstCoordinates.row, dstCoordinates.column);
+
+                while (timer < duration)
+                {
+                    foreach (Block matchableBlock in itemInfo.matchableBlocks)
+                    {
+                        HexaVector2Int coordinates = board.GetCoordinates(matchableBlock.index);
+                        Cell cell = board.GetCell(coordinates.row, coordinates.column);
+                        matchableBlock.transform.position = Vector3.Lerp(cell.transform.position, dstCell.transform.position, timer / duration);
+                    }
+
+                    timer += Time.deltaTime;
+                    yield return null;
+                }
+
+                foreach (Block matchableBlock in itemInfo.matchableBlocks)
+                {
+                    destoryBlocksSet.Remove(matchableBlock);
+                    board.DestroyBlock(matchableBlock);
+                }
+
                 Block itemBlock = board.CreateBlock(itemInfo.prefItemBlock, itemInfo.srcBlock.index);
                 itemBlock.SetColor(itemInfo.srcBlock.colorType);
             }
