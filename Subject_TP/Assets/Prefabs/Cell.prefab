@@ -101,7 +101,7 @@ MonoBehaviour:
   enable: 1
   spawn: 0
   _sprtEnable: {fileID: 21300094, guid: da9d6752771285a40a1b383e61336090, type: 3}
-  _sprtDisable: {fileID: 21300086, guid: da9d6752771285a40a1b383e61336090, type: 3}
+  _sprtDisable: {fileID: 0}
 --- !u!60 &-2142717256068305688
 PolygonCollider2D:
   m_ObjectHideFlags: 0
