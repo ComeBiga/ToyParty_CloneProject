@@ -7,7 +7,7 @@ public class BreakableBlock : Block
     public int hp = 2;
 
     [SerializeField]
-    private Animator _animator;
+    private Animator _animatorBreakableLight;
 
     public override void Init(int index)
     {
@@ -25,7 +25,7 @@ public class BreakableBlock : Block
 
         if(hp == 1)
         {
-            _animator.SetTrigger("Activate");
+            _animatorBreakableLight.SetTrigger("Activate");
         }
     }
 

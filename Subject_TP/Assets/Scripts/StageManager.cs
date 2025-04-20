@@ -39,21 +39,14 @@ public class StageManager : MonoBehaviour
 
     private HexBoardManager mBoard;
     private StageData mCurrentStageData;
-    private Coroutine mInputRoutine = null;
+    private Coroutine mStageRoutine = null;
     private int mRemainMoveCount;
     private int mRemainGoalCount;
 
-    public Block SpawnBlock()
-    {
-        Cell spawnCell = mBoard.GetSpawnCell();
-        int spawnCellIndex = mBoard.GetCellIndex(spawnCell);
-
-        Block spawnedBlock = mBoard.CreateBlock(_prefBlock, spawnCellIndex);
-        spawnedBlock.SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
-
-        return spawnedBlock;
-    }
-
+    /// <summary>
+    /// 스테이지 로드
+    /// </summary>
+    /// <param name="stageID"></param>
     public void LoadStage(int stageID)
     {
         StageData stageData = _stageDatas.Find(x => x.stageID == stageID);
@@ -61,6 +54,10 @@ public class StageManager : MonoBehaviour
         LoadStage(stageData);
     }
 
+    /// <summary>
+    /// 스테이지 로드
+    /// </summary>
+    /// <param name="stageData"></param>
     public void LoadStage(StageData stageData)
     {
         mCurrentStageData = stageData;
@@ -95,30 +92,16 @@ public class StageManager : MonoBehaviour
         }
 
         // 스테이지 시작
-        mInputRoutine = StartCoroutine(eStageRoutine());
+        mStageRoutine = StartCoroutine(eStageRoutine());
     }
 
-    [Obsolete]
-    public void LoadTrainingStage()
-    {
-        mRemainMoveCount = int.MaxValue;
-        _txtMoveCount.text = $"?";
-        mRemainGoalCount = int.MaxValue;
-        _txtGoalCount.text = $"?";
-
-        placeRandomBlocks();
-
-        cleanUpBoard(_popInfo);
-
-        // createGoalBlocks();
-
-        mInputRoutine = StartCoroutine(eStageRoutine());
-    }
-
+    /// <summary>
+    /// 스테이지 리로드
+    /// </summary>
     public void ReloadStage()
     {
-        StopCoroutine(mInputRoutine);
-        mInputRoutine = null;
+        StopCoroutine(mStageRoutine);
+        mStageRoutine = null;
 
         for (int i = mBoard.Blocks.Count - 1; i >= 0; --i)
         {
@@ -130,11 +113,13 @@ public class StageManager : MonoBehaviour
         LoadStage(mCurrentStageData);
     }
 
-
+    /// <summary>
+    /// 스테이지 중단
+    /// </summary>
     public void StopStage()
     {
-        StopCoroutine(mInputRoutine);
-        mInputRoutine = null;
+        StopCoroutine(mStageRoutine);
+        mStageRoutine = null;
 
         for (int i = mBoard.Blocks.Count - 1; i >= 0; --i)
         {
@@ -152,6 +137,10 @@ public class StageManager : MonoBehaviour
         mBoard = HexBoardManager.Instance;
     }
 
+    /// <summary>
+    /// 블럭 배치
+    /// </summary>
+    /// <param name="stageData"></param>
     private void placeBlocks(StageData stageData)
     {
         StageData.BlockInfo[] blockInfos = stageData.blockInfos;
@@ -181,6 +170,9 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 블럭 랜덤 배치
+    /// </summary>
     private void placeRandomBlocks()
     {
         for (int i = 0; i < mBoard.Cells.Length; ++i)
@@ -197,26 +189,6 @@ public class StageManager : MonoBehaviour
                 mBoard.CreateBlock(_prefBlock, i).SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
             }
         }
-    }
-
-    [Obsolete]
-    private void createGoalBlocks()
-    {
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(1, 1));
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(0, 2));
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(0, 3));
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(0, 4));
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(1, 5));
-
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(2, 3));
-
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(4, 1));
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(4, 2));
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(4, 4));
-        mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(4, 5));
-
-        mRemainGoalCount = 10;
-        _txtGoalCount.text = $"{mRemainGoalCount}";
     }
 
     /// <summary>
@@ -260,6 +232,10 @@ public class StageManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 스테이지 메인 루틴(루프)
+    /// </summary>
+    /// <returns></returns>
     private IEnumerator eStageRoutine()
     {
         bool isStageEnd = false;
@@ -294,6 +270,7 @@ public class StageManager : MonoBehaviour
 
                 var board = HexBoardManager.Instance;
 
+                // 블럭 스왑
                 board.SwapBlock(mSrcBlock, mDstBlock);
                 yield return eAnimateBlockSwap(mSrcBlock, mDstBlock);
 
@@ -305,6 +282,7 @@ public class StageManager : MonoBehaviour
 
                 bool bSwapMatched = bSrcMatched || bDstMatched;
 
+                // 블럭 매칭 시
                 if (bSwapMatched)
                 {
                     if (mCurrentStageData.useMoveCount)
@@ -322,6 +300,7 @@ public class StageManager : MonoBehaviour
                     _popInfo.state = PopInfo.EState.Drop;
 
                     // int breaker = 0;
+                    // 블럭 스폰 및 드롭
                     while (true)
                     {
                         // if(Input.GetKeyDown(KeyCode.Space))
@@ -362,6 +341,7 @@ public class StageManager : MonoBehaviour
 
                     bSwapMatched = false;
                 }
+                // 블럭 비매칭 시 재스왑
                 else
                 {
                     board.SwapBlock(mSrcBlock, mDstBlock);

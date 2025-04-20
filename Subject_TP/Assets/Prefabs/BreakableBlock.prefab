@@ -320,7 +320,7 @@ MonoBehaviour:
   _animator: {fileID: 5667832480740640906}
   _animatorLight: {fileID: 3564946132400989920}
   hp: 2
-  _animator: {fileID: 5667832480740640906}
+  _animatorBreakableLight: {fileID: 5667832480740640906}
 --- !u!58 &8388451175959221559
 CircleCollider2D:
   m_ObjectHideFlags: 0
