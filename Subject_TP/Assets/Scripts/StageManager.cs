@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -9,8 +10,8 @@ public class StageManager : MonoBehaviour
     public static StageManager Instance => instance;
     private static StageManager instance = null;
 
-    public enum EStageMode { Level21, Training }
-
+    [SerializeField]
+    private List<StageData> _stageDatas;
     [SerializeField]
     private PopInfo _popInfo;
     [SerializeField]
@@ -32,28 +33,15 @@ public class StageManager : MonoBehaviour
     [SerializeField]
     private TextMeshProUGUI _txtGoalCount;
     [SerializeField]
-    private TextMeshProUGUI _txtLevelClear;
-    [SerializeField]
-    private TextMeshProUGUI _txtLevelFail;
-    [SerializeField]
     private Button _btnPause;
-    [SerializeField]
-    private Button _btnResume;
-    [SerializeField]
-    private Button _btnPauseRetry;
-    [SerializeField]
-    private Button _btnClearRetry;
-    [SerializeField]
-    private GameObject _goPanelPause;
     [SerializeField]
     private GameObject _goPanelClear;
 
     private HexBoardManager mBoard;
-    private EStageMode mStageMode;
+    private StageData mCurrentStageData;
     private Coroutine mInputRoutine = null;
     private int mRemainMoveCount;
     private int mRemainGoalCount;
-    private bool mbUseMoveCount = true;
 
     public Block SpawnBlock()
     {
@@ -66,82 +54,82 @@ public class StageManager : MonoBehaviour
         return spawnedBlock;
     }
 
-    //public void LoadStage(EStageMode stageMode)
-    //{
-    //    mStageMode = stageMode;
-
-    //    switch(mStageMode)
-    //    {
-    //        case EStageMode.Level21:
-    //            loadStage();
-    //            break;
-    //        case EStageMode.Training:
-    //            loadTrainingStage();
-    //            break;
-    //    }
-    //}
-
-    public void LoadStage()
+    public void LoadStage(int stageID)
     {
-        mStageMode = EStageMode.Level21;
+        StageData stageData = _stageDatas.Find(x => x.stageID == stageID);
 
-        mRemainMoveCount = _moveCount;
-        _txtMoveCount.text = $"{mRemainMoveCount}";
-        mbUseMoveCount = true;
-
-        for (int i = 0; i < mBoard.Cells.Length; ++i)
-        {
-            Cell cell = mBoard.Cells[i];
-
-            if (!cell.enable)
-            {
-                continue;
-            }
-
-            if (mBoard.GetBlock(mBoard.GetCoordinates(i)) == null)
-            {
-                mBoard.CreateBlock(_prefBlock, i).SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
-            }
-        }
-
-        cleanUpBoard(_popInfo);
-
-        createGoalBlocks();
-
-        mInputRoutine = StartCoroutine(eInputRoutine());
+        LoadStage(stageData);
     }
 
+    public void LoadStage(StageData stageData)
+    {
+        mCurrentStageData = stageData;
+
+        if (mCurrentStageData.startRandomBlocks)
+        {
+            placeRandomBlocks();
+            cleanUpBoard(_popInfo);
+        }
+        else
+        {
+            placeBlocks(mCurrentStageData);
+        }
+
+        // 골 블럭 수
+        if (!mCurrentStageData.useGoal)
+        {
+            mRemainGoalCount = int.MaxValue;
+            _txtGoalCount.text = $"?";
+        }
+
+        // 이동 횟수
+        if (mCurrentStageData.useMoveCount)
+        {
+            mRemainMoveCount = _moveCount;
+            _txtMoveCount.text = $"{mRemainMoveCount}";
+        }
+        else
+        {
+            mRemainMoveCount = int.MaxValue;
+            _txtMoveCount.text = $"?";
+        }
+
+        // 스테이지 시작
+        mInputRoutine = StartCoroutine(eStageRoutine());
+    }
+
+    [Obsolete]
     public void LoadTrainingStage()
     {
-        mStageMode = EStageMode.Training;
-
         mRemainMoveCount = int.MaxValue;
         _txtMoveCount.text = $"?";
-        mbUseMoveCount = false;
         mRemainGoalCount = int.MaxValue;
         _txtGoalCount.text = $"?";
 
-        for (int i = 0; i < mBoard.Cells.Length; ++i)
-        {
-            Cell cell = mBoard.Cells[i];
-
-            if (!cell.enable)
-            {
-                continue;
-            }
-
-            if (mBoard.GetBlock(mBoard.GetCoordinates(i)) == null)
-            {
-                mBoard.CreateBlock(_prefBlock, i).SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
-            }
-        }
+        placeRandomBlocks();
 
         cleanUpBoard(_popInfo);
 
         // createGoalBlocks();
 
-        mInputRoutine = StartCoroutine(eInputRoutine());
+        mInputRoutine = StartCoroutine(eStageRoutine());
     }
+
+    public void ReloadStage()
+    {
+        StopCoroutine(mInputRoutine);
+        mInputRoutine = null;
+
+        for (int i = mBoard.Blocks.Count - 1; i >= 0; --i)
+        {
+            mBoard.DestroyBlock(mBoard.Blocks[i]);
+        }
+
+        _btnPause.interactable = true;
+
+        LoadStage(mCurrentStageData);
+    }
+
 
     public void StopStage()
     {
@@ -162,26 +150,56 @@ public class StageManager : MonoBehaviour
     private void Start()
     {
         mBoard = HexBoardManager.Instance;
-
-        _btnPause.onClick.AddListener(() => _goPanelPause.gameObject.SetActive(true));
-        _btnResume.onClick.AddListener(() => _goPanelPause.gameObject.SetActive(false));
-        _btnPauseRetry.onClick.AddListener(() =>
-        {
-            _goPanelPause.gameObject.SetActive(false);
-            reloadStage();
-        });
-        _btnClearRetry.onClick.AddListener(() =>
-        {
-            _goPanelClear.gameObject.SetActive(false);
-            reloadStage();
-        });
-        _btnPause.interactable = true;
-
-        //loadStage();
-        //loadTrainingStage();
     }
 
-    
+    private void placeBlocks(StageData stageData)
+    {
+        StageData.BlockInfo[] blockInfos = stageData.blockInfos;
+        mRemainGoalCount = 0;
+
+        for (int i = 0; i < mBoard.Cells.Length; ++i)
+        {
+            Cell cell = mBoard.Cells[i];
+
+            if (!cell.enable)
+            {
+                continue;
+            }
+
+            StageData.BlockInfo blockInfo = blockInfos[i];
+
+            if (blockInfo.isGoal)
+            {
+                mBoard.CreateBlock(_prefBreakableBlock, i);
+                ++mRemainGoalCount;
+                _txtGoalCount.text = $"{mRemainGoalCount}";
+            }
+            else
+            {
+                mBoard.CreateBlock(_prefBlock, i).SetColor(blockInfo.color);
+            }
+        }
+    }
+
+    private void placeRandomBlocks()
+    {
+        for (int i = 0; i < mBoard.Cells.Length; ++i)
+        {
+            Cell cell = mBoard.Cells[i];
+
+            if (!cell.enable)
+            {
+                continue;
+            }
+
+            if (mBoard.GetBlock(mBoard.GetCoordinates(i)) == null)
+            {
+                mBoard.CreateBlock(_prefBlock, i).SetColor((Block.EColor)UnityEngine.Random.Range(0, 6));
+            }
+        }
+    }
+
+    [Obsolete]
     private void createGoalBlocks()
     {
         mBoard.ReplaceBlock(_prefBreakableBlock, mBoard.GetIndex(1, 1));
@@ -242,30 +260,7 @@ public class StageManager : MonoBehaviour
         }
     }
 
-    private void reloadStage()
-    {
-        StopCoroutine(mInputRoutine);
-        mInputRoutine = null;
-
-        for (int i = mBoard.Blocks.Count - 1; i >= 0; --i)
-        {
-            mBoard.DestroyBlock(mBoard.Blocks[i]);
-        }
-
-        _btnPause.interactable = true;
-
-        switch(mStageMode)
-        {
-            case EStageMode.Level21:
-                LoadStage();
-                break;
-            case EStageMode.Training:
-                LoadTrainingStage();
-                break;
-        }
-    }
-
-    private IEnumerator eInputRoutine()
+    private IEnumerator eStageRoutine()
     {
         bool isStageEnd = false;
         Block mSrcBlock = null;
@@ -312,7 +307,7 @@ public class StageManager : MonoBehaviour
 
                 if (bSwapMatched)
                 {
-                    if (mbUseMoveCount)
+                    if (mCurrentStageData.useMoveCount)
                     {
                         _txtMoveCount.text = $"{--mRemainMoveCount}";
                     }
@@ -389,12 +384,10 @@ public class StageManager : MonoBehaviour
 
         if(mRemainGoalCount <= 0)
         {
-            //_txtLevelClear.gameObject.SetActive(true);
             _goPanelClear.gameObject.SetActive(true);
         }
         else if(mRemainMoveCount <= 0)
         {
-            //_txtLevelFail.gameObject.SetActive(true);
             _goPanelClear.gameObject.SetActive(true);
         }
 
